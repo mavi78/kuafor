@@ -1,11 +1,49 @@
-[00:00:05.545] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:00:07.429] Server  LOG      ✓ Ready in 6.9s
-[00:00:10.702] Server  LOG      ○ Compiling /randevular ...
-[00:03:15.396] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:03:15.396] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:03:38.834] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:03:38.834] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:04:28.005] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:04:28.005] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:09:16.456] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:09:16.456] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:00:02.228] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:02.538] Server  LOG      ✓ Ready in 1975ms
+[00:00:18.443] Server  LOG      ○ Compiling /takip ...
+[00:00:26.397] Server  ERROR    ⨯ PrismaClientInitializationError: 
+Invalid `prisma.service.findMany()` invocation in
+E:\kuafor\.next\dev\server\chunks\ssr\[root-of-the-server]__25773f25._.js:80:24
+
+  77 };
+  78 async function getFormData() {
+  79     const [services, workingHours, specialWorkingDays] = await Promise.all([
+→ 80         prisma.service.findMany(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+[00:00:26.784] Browser ERROR   uncaughtError: PrismaClientInitializationError: 
+Invalid `prisma.service.findMany()` invocation in
+E:\kuafor\.next\dev\server\chunks\ssr\[root-of-the-server]__25773f25._.js:80:24
+
+  77 };
+  78 async function getFormData() {
+  79     const [services, workingHours, specialWorkingDays] = await Promise.all([
+→ 80         prisma.service.findMany(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+[00:01:44.746] Server  ERROR    ⨯ PrismaClientInitializationError: 
+Invalid `prisma.service.findMany()` invocation in
+E:\kuafor\.next\dev\server\chunks\ssr\[root-of-the-server]__25773f25._.js:80:24
+
+  77 };
+  78 async function getFormData() {
+  79     const [services, workingHours, specialWorkingDays] = await Promise.all([
+→ 80         prisma.service.findMany(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+[00:01:45.085] Browser ERROR   uncaughtError: PrismaClientInitializationError: 
+Invalid `prisma.service.findMany()` invocation in
+E:\kuafor\.next\dev\server\chunks\ssr\[root-of-the-server]__25773f25._.js:80:24
+
+  77 };
+  78 async function getFormData() {
+  79     const [services, workingHours, specialWorkingDays] = await Promise.all([
+→ 80         prisma.service.findMany(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+[00:03:45.921] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:03:45.921] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.

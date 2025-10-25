@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { canCancelAppointment } from "@/lib/utils/appointment";
 
 export function AppointmentTracker() {
   const searchParams = useSearchParams();
@@ -15,6 +16,9 @@ export function AppointmentTracker() {
   const [isSearching, setIsSearching] = useState(false);
   const [appointment, setAppointment] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +41,42 @@ export function AppointmentTracker() {
       setError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleCancelAppointment = async () => {
+    if (!cancelReason.trim()) {
+      setError("Lütfen iptal nedenini belirtin");
+      return;
+    }
+
+    setIsCancelling(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/appointments/cancel-by-customer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: appointment.code,
+          reason: cancelReason,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "İptal işlemi başarısız");
+      }
+
+      // Randevuyu güncelle
+      setAppointment(result.appointment);
+      setShowCancelDialog(false);
+      setCancelReason("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -171,9 +211,131 @@ export function AppointmentTracker() {
                   Randevunuz henüz onaylanmadı. En kısa sürede size dönüş
                   yapılacaktır.
                 </p>
-                <Button variant="outline" className="w-full" disabled>
-                  İptal Et (Yakında)
-                </Button>
+                {canCancelAppointment(
+                  new Date(appointment.date).toISOString().split("T")[0],
+                  appointment.time
+                ) ? (
+                  <>
+                    {!showCancelDialog ? (
+                      <Button
+                        variant="outline"
+                        className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => setShowCancelDialog(true)}
+                      >
+                        Randevuyu İptal Et
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="cancelReason">İptal Nedeni</Label>
+                          <textarea
+                            id="cancelReason"
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            placeholder="Lütfen iptal nedeninizi belirtin..."
+                            className="w-full min-h-[100px] px-3 py-2 border rounded-md"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => {
+                              setShowCancelDialog(false);
+                              setCancelReason("");
+                              setError(null);
+                            }}
+                            disabled={isCancelling}
+                          >
+                            Vazgeç
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            className="flex-1"
+                            onClick={handleCancelAppointment}
+                            disabled={isCancelling || !cancelReason.trim()}
+                          >
+                            {isCancelling ? "İptal Ediliyor..." : "İptal Et"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800">
+                      ⚠️ Randevu saatine 12 saatten az kaldığı için web
+                      üzerinden iptal edilemez. Lütfen bizimle iletişime geçin.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {appointment.status === "APPROVED" && (
+              <div className="pt-4 border-t">
+                <p className="text-sm text-gray-600 mb-3">
+                  ✅ Randevunuz onaylandı. Belirlenen tarih ve saatte görüşmek
+                  üzere!
+                </p>
+                {canCancelAppointment(
+                  new Date(appointment.date).toISOString().split("T")[0],
+                  appointment.time
+                ) ? (
+                  <>
+                    {!showCancelDialog ? (
+                      <Button
+                        variant="outline"
+                        className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => setShowCancelDialog(true)}
+                      >
+                        Randevuyu İptal Et
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="cancelReason">İptal Nedeni</Label>
+                          <textarea
+                            id="cancelReason"
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            placeholder="Lütfen iptal nedeninizi belirtin..."
+                            className="w-full min-h-[100px] px-3 py-2 border rounded-md"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => {
+                              setShowCancelDialog(false);
+                              setCancelReason("");
+                              setError(null);
+                            }}
+                            disabled={isCancelling}
+                          >
+                            Vazgeç
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            className="flex-1"
+                            onClick={handleCancelAppointment}
+                            disabled={isCancelling || !cancelReason.trim()}
+                          >
+                            {isCancelling ? "İptal Ediliyor..." : "İptal Et"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800">
+                      ⚠️ Randevu saatine 12 saatten az kaldığı için web
+                      üzerinden iptal edilemez. Lütfen bizimle iletişime geçin.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

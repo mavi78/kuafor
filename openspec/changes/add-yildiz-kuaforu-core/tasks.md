@@ -19,13 +19,13 @@
 - [x] 3.3 Staff leaves model and validation on approval
 - [x] 3.4 Duration-based conflict detection at approval, list overlaps
 - [x] 3.5 Approval/Revise/Cancel actions with RBAC constraints
-- [ ] 3.6 Follow-up code page (status view)
+- [x] 3.6 Follow-up code page (status view)
 
 ## 4. Notifications & Real-time
 
-- [ ] 4.1 Provider interfaces for Email, SMS, WhatsApp; mock + real drivers
-- [ ] 4.2 Templates: pending/approved/revised/cancelled/receipt
-- [ ] 4.3 Notification logging `NotificationLog`
+- [x] 4.1 Provider interfaces for Email, SMS, WhatsApp; mock + real drivers
+- [x] 4.2 Templates: pending/approved/revised/cancelled/receipt
+- [x] 4.3 Notification logging `NotificationLog`
 - [ ] 4.4 WebSocket broadcast for panel badge/notification updates
 
 ## 5. Payments

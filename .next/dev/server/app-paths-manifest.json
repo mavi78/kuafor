@@ -3,9 +3,9 @@
   "/(public)/randevu/page": "app/(public)/randevu/page.js",
   "/(public)/takip/page": "app/(public)/takip/page.js",
   "/api/appointments/approve/route": "app/api/appointments/approve/route.js",
-  "/api/appointments/cancel/route": "app/api/appointments/cancel/route.js",
   "/api/appointments/create/route": "app/api/appointments/create/route.js",
-  "/api/appointments/track/route": "app/api/appointments/track/route.js",
   "/api/appointments/validate/route": "app/api/appointments/validate/route.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/notifications/logs/route": "app/api/notifications/logs/route.js",
+  "/page": "app/page.js"
 }
