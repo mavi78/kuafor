@@ -1,0 +1,243 @@
+// Yıldız Bayan Kuaförü - Prisma Schema
+// Modeller: PascalCase; DB alanları: snake_case
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+enum AppointmentStatus {
+  PENDING
+  APPROVED
+  REVISED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentMethod {
+  CARD
+  TRANSFER
+  CASH
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  WS
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  role          Role     @default(CUSTOMER)
+  password_hash String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  appointments_created Appointment[]        @relation("CustomerAppointments")
+  appointments_assigned Appointment[]       @relation("StaffAppointments")
+  leaves               StaffLeave[]
+  reviews              Review[]
+  audit_logs           AuditLog[]
+  invitations_sent     InvitationToken[]
+  password_reset_tokens PasswordResetToken[]
+
+  @@map("users")
+}
+
+model Service {
+  id           String  @id @default(cuid())
+  name         String
+  duration_min Int
+  price_try    Decimal @db.Decimal(10, 2)
+  is_active    Boolean @default(true)
+
+  // Relations
+  appointment_services AppointmentService[]
+
+  @@map("services")
+}
+
+model Appointment {
+  id                  String            @id @default(cuid())
+  code                String            @unique
+  customer_name       String
+  customer_phone      String
+  customer_user_id    String?
+  people_count        Int               @default(1)
+  date                DateTime          @db.Date
+  time                String
+  status              AppointmentStatus @default(PENDING)
+  assigned_staff_id   String?
+  notes_internal      Json?
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+
+  // Relations
+  customer_user      User?                 @relation("CustomerAppointments", fields: [customer_user_id], references: [id])
+  assigned_staff     User?                 @relation("StaffAppointments", fields: [assigned_staff_id], references: [id])
+  appointment_services AppointmentService[]
+  payment            Payment?
+  review             Review?
+
+  @@map("appointments")
+}
+
+model AppointmentService {
+  id                    String  @id @default(cuid())
+  appointment_id        String
+  service_id            String
+  price_try_at_booking  Decimal @db.Decimal(10, 2)
+
+  // Relations
+  appointment Appointment @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+  service     Service     @relation(fields: [service_id], references: [id])
+
+  @@map("appointment_services")
+}
+
+model WorkingHours {
+  id         String  @id @default(cuid())
+  weekday    Int     @db.SmallInt // 0=Sunday, 6=Saturday
+  open_time  String?
+  close_time String?
+  is_open    Boolean @default(true)
+
+  @@map("working_hours")
+}
+
+model SpecialWorkingDay {
+  id         String   @id @default(cuid())
+  date       DateTime @db.Date
+  open_time  String?
+  close_time String?
+  is_open    Boolean  @default(true)
+
+  @@map("special_working_days")
+}
+
+model StaffLeave {
+  id             String   @id @default(cuid())
+  staff_user_id  String
+  start_date     DateTime @db.Date
+  end_date       DateTime @db.Date
+  reason         String?
+
+  // Relations
+  staff_user User @relation(fields: [staff_user_id], references: [id])
+
+  @@map("staff_leaves")
+}
+
+model Review {
+  id             String    @id @default(cuid())
+  appointment_id String?   @unique
+  user_id        String?
+  rating         Int       @db.SmallInt
+  comment        String?
+  is_guest       Boolean   @default(false)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  // Relations
+  appointment Appointment? @relation(fields: [appointment_id], references: [id])
+  user        User?        @relation(fields: [user_id], references: [id])
+
+  @@map("reviews")
+}
+
+model GalleryImage {
+  id         String   @id @default(cuid())
+  url        String
+  title      String?
+  created_at DateTime @default(now())
+
+  @@map("gallery_images")
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  appointment_id String        @unique
+  method         PaymentMethod
+  subtotal       Decimal       @db.Decimal(10, 2)
+  discount_total Decimal       @db.Decimal(10, 2) @default(0)
+  total          Decimal       @db.Decimal(10, 2)
+  details_json   Json?
+  created_at     DateTime      @default(now())
+
+  // Relations
+  appointment Appointment @relation(fields: [appointment_id], references: [id])
+
+  @@map("payments")
+}
+
+model NotificationLog {
+  id           String              @id @default(cuid())
+  channel      NotificationChannel
+  to           String
+  template_key String
+  payload_json Json
+  result       String?
+  created_at   DateTime            @default(now())
+
+  @@map("notification_logs")
+}
+
+model AuditLog {
+  id              String   @id @default(cuid())
+  actor_user_id   String?
+  entity_type     String
+  entity_id       String
+  action          String
+  diff_json       Json?
+  created_at      DateTime @default(now())
+
+  // Relations
+  actor_user User? @relation(fields: [actor_user_id], references: [id])
+
+  @@map("audit_logs")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model InvitationToken {
+  id           String   @id @default(cuid())
+  inviter_id   String?
+  email        String
+  role         Role
+  token        String   @unique
+  expires_at   DateTime
+  used         Boolean  @default(false)
+  created_at   DateTime @default(now())
+
+  // Relations
+  inviter User? @relation(fields: [inviter_id], references: [id])
+
+  @@map("invitation_tokens")
+}
