@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { canCancelAppointment } from "@/lib/utils/appointment";
+import { getPrimaryAdminContact } from "@/lib/utils/notification-recipients";
+import { notifyAppointmentStatusChange } from "@/lib/notify";
+import { NotificationChannel } from "@/lib/notify/types";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 const prisma = new PrismaClient();
 
@@ -70,6 +75,36 @@ export async function POST(request: Request) {
         assigned_staff: true,
         customer_user: true,
       },
+    });
+
+    // Send notification to admin (async, don't wait)
+    const serviceNames = updated.appointment_services
+      .map((as) => as.service.name)
+      .join(", ");
+    const formattedDate = format(updated.date, "d MMMM yyyy", { locale: tr });
+
+    // Get admin contact from database
+    const adminContact = await getPrimaryAdminContact();
+
+    notifyAppointmentStatusChange(
+      {
+        status: "CANCELLED",
+        appointmentCode: updated.code,
+        customerName: updated.customer_name,
+        appointmentDate: formattedDate,
+        appointmentTime: updated.time,
+        services: serviceNames,
+        cancelReason: reason,
+      },
+      {},
+      adminContact,
+      [],
+      [NotificationChannel.EMAIL]
+    ).catch((error) => {
+      console.error(
+        "Failed to send customer cancellation notification:",
+        error
+      );
     });
 
     return NextResponse.json({

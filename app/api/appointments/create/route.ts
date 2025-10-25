@@ -7,6 +7,11 @@ import {
   generateAppointmentCode,
   checkWorkingHours,
 } from "@/lib/utils/appointment";
+import { getPrimaryAdminContact } from "@/lib/utils/notification-recipients";
+import { notifyAppointmentStatusChange } from "@/lib/notify";
+import { NotificationChannel } from "@/lib/notify/types";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 import { z } from "zod";
 
 const prisma = new PrismaClient();
@@ -104,6 +109,36 @@ export async function POST(request: NextRequest) {
     //   template: 'appointment_pending',
     //   payload: { appointment, code },
     // })
+
+    // Send notifications (async, don't wait)
+    const serviceNames = services.map((s) => s.name).join(", ");
+    const formattedDate = format(new Date(validatedData.date), "d MMMM yyyy", {
+      locale: tr,
+    });
+
+    // Get admin contact from database
+    const adminContact = await getPrimaryAdminContact();
+
+    notifyAppointmentStatusChange(
+      {
+        status: "PENDING",
+        appointmentCode: code,
+        customerName: validatedData.customer_name,
+        appointmentDate: formattedDate,
+        appointmentTime: validatedData.time,
+        services: serviceNames,
+      },
+      {
+        email: session?.user?.email || undefined,
+        phone: validatedData.customer_phone,
+      },
+      adminContact,
+      [NotificationChannel.EMAIL, NotificationChannel.SMS],
+      [NotificationChannel.EMAIL]
+    ).catch((error) => {
+      console.error("Failed to send appointment notifications:", error);
+      // Don't fail the request if notifications fail
+    });
 
     return NextResponse.json(
       {
